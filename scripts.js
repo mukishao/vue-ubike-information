@@ -103,4 +103,9 @@ const vm = Vue.createApp({
       return newArr;
     },
   },
+  watch:{
+    searchName () {
+      this.currentPage = 1;
+    }
+  }
 }).mount("#app");
