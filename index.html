@@ -6,9 +6,47 @@
   <title>YouBike 臺北市公共自行車即時資訊</title>
 
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
-
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
   <style>
-    body{ padding: 1em;  }
+    body {
+      padding: 1em;
+    }
+    th{
+      position:relative;
+    }
+    th .txt{
+      position: relative;
+      cursor:pointer;
+    }
+    th i{
+      position:absolute;
+      top:50%;
+      transform: translateY(-50%);
+      right: -13px;
+      opacity:0;
+    }
+    th:hover .fa-sort-desc{
+      opacity: 0.5;
+    }
+    th .fa-sort-desc.is-active, th .fa-sort-asc.is-active{
+      opacity:1;
+    }
+    th i.is-active ~ .fa-sort-desc{
+      opacity: 0;
+    }
+    th .fa-sort-asc {
+      transform: translateY(-50%) translateY(4px);
+    }
+    th .fa-sort-desc {
+      transform: translateY(-50%) translateY(-3px);
+    }
+    .pagination .page-item{
+      user-select: none;
+    }
+
+    [v-cloak] {
+      display: none;
+    }
   </style>
 
 </head>
@@ -16,32 +54,70 @@
 
   <h1>YouBike 臺北市公共自行車即時資訊</h1>
 
-  <div id="app">
+  <div id="app"v-cloak >
 
-    <table class="table table-striped">
+    <p>
+      站點名稱搜尋: <input type="text" v-model.trim="searchName">
+    </p>
+
+    <table class="table table-striped" >
       <thead>
         <tr>
           <th>#</th>
           <th>場站名稱</th>
           <th>場站區域</th>
-          <th>目前可用車輛</th>
-          <th>總停車格</th>
+          <th @click="handleSort('sbi')">
+            <span class="txt">
+              目前可用車輛
+              <i :class="['fa fa-sort-asc', {'is-active': sortField == 'sbi' && sortOrder == 'asc'}]" aria-hidden="true"></i>
+              <i :class="['fa fa-sort-desc', {'is-active': sortField == 'sbi' && sortOrder == 'desc'}]" aria-hidden="true"></i>
+            </span>
+          </th>
+          <th @click="handleSort('tot')">
+            <span class="txt">
+              總停車格
+              <i :class="['fa fa-sort-asc', {'is-active': sortField == 'tot' && sortOrder == 'asc'}]" aria-hidden="true"></i>
+              <i :class="['fa fa-sort-desc', {'is-active': sortField == 'tot' && sortOrder == 'desc'}]" aria-hidden="true"></i>
+            </span>
+          </th>
           <th>資料更新時間</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="s in ubikeStops">
-          <td>{{ s.sno }}</td>
-          <td>{{ s.sna }}</td>
-          <td>{{ s.sarea }}</td>
-          <td>{{ s.sbi }}</td>
-          <td>{{ s.tot }}</td>
-          <td>{{ timeFormat(s.mday) }}</td>
+        <tr v-for="stop in currentPageStops" :key="stop.sno">
+          <td>
+            {{stop.sno}}
+          </td>
+          <td>
+            {{stop.sna}}
+          </td>
+          <td>
+            {{stop.sarea}}
+          </td>
+          <td>
+            {{stop.sbi}}
+          </td>
+          <td>
+            {{stop.tot}}
+          </td>
+          <td>
+            {{timeFormat(stop.mday)}}
+          </td>
         </tr>
       </tbody>
 
     </table>
-
+    
+    <nav aria-label="Page navigation example">
+      <ul class="pagination justify-content-center">
+        <li :class="['page-item', {disabled : currentPage == 1 || pages == 1}]" @click.prevent="goPage(currentPage - 1)"><a
+            class="page-link" href="#">Previous</a></li>
+        <li :class="['page-item', {active : currentPage == page}]" @click.prevent="currentPage = page" v-for="page in pages"
+          :key="page"><a class="page-link" href="#">{{page}}</a></li>
+        <li :class="['page-item', {disabled : currentPage == pages || pages == 1}]"
+          @click.prevent="goPage(currentPage + 1)"><a class="page-link" href="#">Next</a></li>
+      </ul>
+    </nav>
   </div>
 
   <script src="https://unpkg.com/vue@next"></script>
